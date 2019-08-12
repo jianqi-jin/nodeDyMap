@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="/insertGood" method="post" enctype="multipart/form-data">
+        title:<input type="text" name='title' /><br>
+        info:<input type="text" name='info' /><br>
+        classid:<input type="text" name='classid' /><br>
+        referid:<input type="text" name='referid' /><br>
+        banner:<input type="file" name='image' /><br>
+        banner:<input type="file" name='image' /><br>
+        richid:<input type="text" name='richid' /><br>
+        latitude:<input type="text" name='latitude' /><br>
+        longitude:<input type="text" name='longitude' /><br>
+        <br />
+        <input type="submit" value="上传文件" />
+    </form>
+
+
+
+
+    <div id="app">
+        <button @click='getGoodsAll'>getAllGoods</button>
+        {{message}}
+        <table>
+            <thead>
+                <td>title</td>
+                <td>info</td>
+                <td>banner</td>
+                <td>classid</td>
+                <td>referid</td>
+            </thead>
+            <tbody>
+                <tr v-for='(item, index) in goods'>
+                    <td>{{item.title}}</td>
+                    <td>{{item.info}}</td>
+                    <td>
+                        <image style="width: 100px;" v-for='(bannerItem, index) in JSON.parse(item.banner)' v-bind:src='bannerItem'></image>
+                    </td>
+                    <td>{{item.classid}}</td>
+                    <td>{{item.referid}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</body>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'hello Vue',
+            goods: []
+        },
+        methods: {
+            getGoodsAll() {
+                axios.get('/getGoodsAll').then(res => {
+                    this.goods = res.data;
+                })
+            }
+        }
+    })
+
+
+
+
+
+</script>
+
+</html>
