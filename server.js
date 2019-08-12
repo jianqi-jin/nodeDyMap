@@ -7,7 +7,8 @@ var multer = require('multer');
 const query = require('./db/db')
 const api = require('./api/index')
 exports.serverUri = 'http://localhost:8081/'
-const { insertGood } = require('./api/goods/insert')
+const { insertGood, getGoodsFromId } = require('./api/goods')
+const { insertRefer, getReferAll } = require('./api/refer')
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -18,7 +19,7 @@ var storage = multer.diskStorage({
     }
 })
 const fileFilter = (req, file, cb) => {
-    if (file.originalname.split('.')[1] == 'bmp' || file.originalname.split('.')[1] == 'jpg' || file.originalname.split('.')[1] == 'png') {
+    if (file.originalname.split('.')[1] == 'bmp' || file.originalname.split('.')[1] == 'jpg' || file.originalname.split('.')[1] == 'png' || file.originalname.split('.')[1] == 'jpeg') {
         cb(null, true)
     } else {
         cb(null, false)
@@ -51,6 +52,14 @@ app.get('/insert', (req, res) => {
 
 })
 
+app.post('/insertRefer', uploadMiddleware, (req, res) => {
+    insertRefer(req, res)
+})
+app.get('/getReferAll', (req, res) => {
+    getReferAll(req, res)
+})
+
+
 app.get('/getGoodsTitle', (req, res) => {
     api.getGoodsTitle(req, res)
 })
@@ -59,10 +68,12 @@ app.get('/getGoodsAll', (req, res) => {
 })
 
 
+app.get('/getGoods', (req, res) => {
+    getGoodsFromId(req, res)
+})
 
 
 app.post('/insertGood', uploadMiddleware, (req, res) => {
-
     insertGood(req, res)
 
 })
@@ -74,7 +85,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer({ dest: '/tmp/' }).array('image'));
 
 app.get('/index.html', function (req, res) {
-    res.sendFile(__dirname + "/" + "index.html");
+    res.sendFile(__dirname + "/public/" + "index.html");
+})
+app.get('/detail.html', function (req, res) {
+    res.sendFile(__dirname + "/public/" + "detail.html");
+})
+app.get('/refer.html', function (req, res) {
+    res.sendFile(__dirname + "/public/" + "refer.html");
+})
+app.get('/rich.html', function (req, res) {
+    res.sendFile(__dirname + "/public/" + "rich.html");
 })
 
 // app.post('/file_upload', function (req, res) {
@@ -106,3 +126,4 @@ var server = app.listen(8081, function () {
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
 
 })
+
