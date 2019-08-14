@@ -39,6 +39,8 @@ const uploadMiddleware = (req, res, next) => {
         }
     })
 }
+const https = require('https')
+
 const api = require('./api/index')
 const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = require('./api/goods')
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
@@ -165,12 +167,18 @@ app.post('/getReferFromGoodsid', (req, res) => {
 //     });
 // })
 
-var server = app.listen(8081, function () {
+var privateKey = fs.readFileSync('./certificate/private.key', 'utf8');
+var certificate = fs.readFileSync('./certificate/ca.pem', 'utf8');
+var credentials = { key: privateKey, cert: certificate };
+
+const server = https.createServer(credentials, app);
+
+server.listen(8081, function () {
 
     var host = server.address().address
     var port = server.address().port
 
-    console.log("应用实例，访问地址为 http://%s:%s", host, port)
+    console.log("应用实例，访问地址为 https://%s:%s", host, port)
 
 })
 
