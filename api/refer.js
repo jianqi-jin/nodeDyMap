@@ -49,8 +49,7 @@ async function updateRefer(req, res) {
     let queryStr = 'UPDATE '
     let queryParams = 'UPDATE '
 
-
-    if (req.files.length > 0) {
+    if (req.files && req.files.length > 0) {
         let deletRes = await deleImg(refer.thumb);
         // if (deletRes) {
         //     res.json({
@@ -66,18 +65,13 @@ async function updateRefer(req, res) {
         queryStr = "UPDATE `refer_goods` SET `title`=?, `info`=?, `goodsid`=? WHERE (`id`=?)"
         queryParams = [params.title, params.info, params.goodsid, params.id]
     }
-    queryParams = queryParams.map(val => ((val && val != 'null') ? val : null))
+    queryParams = queryParams.map(val => ((val && (val != 'null')) ? val : null))
     query(queryStr, queryParams, (err, result) => {
-        if (err) {
-            res.json({
-                err: 1,
-                msg: err
-            })
-        } else {
-            res.json({
-                err: 0
-            })
-        }
+        res.json({
+            err: !!err,
+            msg: err,
+            data: result
+        })
     })
 
 }

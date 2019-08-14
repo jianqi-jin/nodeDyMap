@@ -3,6 +3,7 @@ const { serverUri } = require('../server')
 const query = require('../db/db')
 const { imgDir } = require('../server')
 const { _getRichFromGoodsId } = require('./rich')
+const { deleImg } = require('./utils')
 const insertGood = (req, res) => {
     let files = req.files;
     let bannerArr = files.map(val => (val.filename));//serverUri + 'uploads/' +
@@ -19,6 +20,15 @@ const insertGood = (req, res) => {
 
         })
 }
+async function deleGoods(req, res) {
+    query("DELETE FROM `goods` WHERE (`id`= ?)",[req.body.goodsid], (err, result) => {
+        res.json({
+            err: !!err,
+            msg: err,
+            data: result
+        })
+    })
+}
 async function getGoodsFromId(req, res) {
     let goodsid = req.body.goodsid;
     let goodsInfo = await _getGoods(goodsid);
@@ -26,7 +36,6 @@ async function getGoodsFromId(req, res) {
         goodsInfo.banner_list = JSON.parse(goodsInfo.banner_list);
         goodsInfo.banner_list = goodsInfo.banner_list.map(val => (imgDir + val));
         let referList = await _getReferList(goodsInfo.id);
-        referList = referList.map(val => (val.thumb = imgDir + val.thumb, val))
         goodsInfo.referList = referList;
         let rich = await _getRichFromGoodsId(goodsInfo.id);
         goodsInfo.rich = rich
@@ -65,14 +74,50 @@ const _getReferList = (goodsid) => {
             if (error) {
                 resolve(null)
             } else {
+                result = result.map(val => (val.thumb = imgDir + val.thumb, val))
+
                 resolve(result || null)
             }
         })
     })
+}
+
+
+async function updateGoods(req, res) {
+    console.log(req.body)
+    let params = req.body;
+    let files = req.files;
+    console.log(req.files)
+    let goodsInfo = await _getGoods(params.id)
+    let oldImgs = JSON.parse(goodsInfo.banner_list)
+
+    let imgchangelist = JSON.parse(params.imgchangelist)
+    const fileIndex = 0
+    for (const index in imgchangelist) {
+        if (imgchangelist[index]) {
+            await deleImg(oldImgs[index])
+            oldImgs[index] = files[fileIndex]
+            fileIndex += 1;
+        }
+    }
+    let banner_list = JSON.stringify(oldImgs)
+    query("UPDATE `goods` SET `title`=?, `info`=?, `classid`=?, `banner_list`=?, `latitude`=?, `longitude`=? WHERE (`id`=?)",
+        [params.title, params.info, params.classid, banner_list, params.latitude, params.longitude, params.id], (err, result) => {
+
+            res.json({
+                err: !!err,
+                msg: err,
+                data: result
+            })
+        })
+
 
 }
 
 module.exports = {
     insertGood,
-    getGoodsFromId
+    getGoodsFromId,
+    _getReferList,
+    updateGoods,
+    deleGoods
 };

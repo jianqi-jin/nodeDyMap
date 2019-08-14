@@ -40,13 +40,13 @@ const uploadMiddleware = (req, res, next) => {
     })
 }
 const api = require('./api/index')
-const { insertGood, getGoodsFromId } = require('./api/goods')
+const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = require('./api/goods')
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
 const { uploadRich } = require('./api/rich')
-const { getRichAll } = require('./api/rich')
+const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
+const { _getAllClass } = require('./api/class')
 
-
-const {deleImg} = require('./api/utils')
+const { deleImg } = require('./api/utils')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -57,6 +57,9 @@ app.get('/insert', (req, res) => {
         res.end('OK')
     })
 
+})
+app.post('/deleGoods', (req, res) => {
+    deleGoods(req, res)
 })
 
 app.post('/insertRefer', uploadMiddleware, (req, res) => {
@@ -81,20 +84,35 @@ app.post('/getGoods', (req, res) => {
 app.get('/getRichAll', (req, res) => {
     getRichAll(req, res)
 })
-app.post('/updateRefer', uploadMiddleware, (req, res) => {
-    updateRefer(req, res)
+app.get('/getRich', (req, res) => {
+    _getRichFromGoodsId(req.query.goodsid).then(result => {
+        res.json({
+            err: false,
+            data: result
+        })
+    })
 })
 
 
 app.post('/insertGood', uploadMiddleware, (req, res) => {
-
     insertGood(req, res)
+})
 
+app.post('/updateGoods', uploadMiddleware, (req, res) => {
+    updateGoods(req, res)
 })
 app.post('/insertRich', (req, res) => {
     uploadRich(req, res)
 })
+app.get('/getAllClass', (req, res) => {
+    _getAllClass().then(result => {
+        res.json(result)
+    })
+})
 
+app.post('/updateRefer', uploadMiddleware, (req, res) => {
+    updateRefer(req, res)
+})
 
 app.get('/index.html', function (req, res) {
     res.sendFile(__dirname + "/public/" + "index.html");
@@ -108,9 +126,23 @@ app.get('/refer.html', function (req, res) {
 app.get('/rich.html', function (req, res) {
     res.sendFile(__dirname + "/public/" + "rich.html");
 })
-
+app.post('/deleRich', (req, res) => {
+    deleRich(req, res)
+})
 app.post('/deleRefer', (req, res) => {
     deleRefer(req, res)
+})
+app.post('/updateRich', (req, res) => {
+    updateRich(req, res)
+})
+
+app.post('/getReferFromGoodsid', (req, res) => {
+    _getReferList(req.body.goodsid).then(result => {
+        res.json({
+            err: 0,
+            data: result
+        })
+    })
 })
 // app.post('/file_upload', function (req, res) {
 
