@@ -5,11 +5,15 @@ var fs = require("fs");
 var bodyParser = require('body-parser');
 var multer = require('multer');
 const query = require('./db/db')
-const api = require('./api/index')
 exports.serverUri = 'http://localhost:8081/'
-const { insertGood, getGoodsFromId } = require('./api/goods')
-const { insertRefer, getReferAll } = require('./api/refer')
-
+exports.imgDir = 'http://localhost:8081/uploads/'
+exports.uploadsDir = './uploads/'
+app.use('/public', express.static('public'));
+app.use('/uploads', express.static('uploads'));
+app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(express.bodyParser());
+app.use(bodyParser.json());
+// app.use(multer({ dest: '/tmp/' }).array('image'));
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
@@ -25,9 +29,7 @@ const fileFilter = (req, file, cb) => {
         cb(null, false)
     }
 }
-
 const upload = multer({ storage, fileFilter }).array('image');
-
 const uploadMiddleware = (req, res, next) => {
     upload(req, res, (err) => {
         if (err) {
@@ -37,7 +39,14 @@ const uploadMiddleware = (req, res, next) => {
         }
     })
 }
+const api = require('./api/index')
+const { insertGood, getGoodsFromId } = require('./api/goods')
+const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
+const { uploadRich } = require('./api/rich')
+const { getRichAll } = require('./api/rich')
 
+
+const {deleImg} = require('./api/utils')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -46,8 +55,6 @@ app.get('/insert', (req, res) => {
             console.log(error)
         }
         res.end('OK')
-
-
     })
 
 })
@@ -68,21 +75,26 @@ app.get('/getGoodsAll', (req, res) => {
 })
 
 
-app.get('/getGoods', (req, res) => {
+app.post('/getGoods', (req, res) => {
     getGoodsFromId(req, res)
+})
+app.get('/getRichAll', (req, res) => {
+    getRichAll(req, res)
+})
+app.post('/updateRefer', uploadMiddleware, (req, res) => {
+    updateRefer(req, res)
 })
 
 
 app.post('/insertGood', uploadMiddleware, (req, res) => {
+
     insertGood(req, res)
 
 })
+app.post('/insertRich', (req, res) => {
+    uploadRich(req, res)
+})
 
-
-app.use('/public', express.static('public'));
-app.use('/uploads', express.static('uploads'));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer({ dest: '/tmp/' }).array('image'));
 
 app.get('/index.html', function (req, res) {
     res.sendFile(__dirname + "/public/" + "index.html");
@@ -97,6 +109,9 @@ app.get('/rich.html', function (req, res) {
     res.sendFile(__dirname + "/public/" + "rich.html");
 })
 
+app.post('/deleRefer', (req, res) => {
+    deleRefer(req, res)
+})
 // app.post('/file_upload', function (req, res) {
 
 //     console.log(req.files[0]);  // 上传的文件信息
@@ -126,4 +141,6 @@ var server = app.listen(8081, function () {
     console.log("应用实例，访问地址为 http://%s:%s", host, port)
 
 })
+
+
 

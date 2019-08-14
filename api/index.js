@@ -1,4 +1,4 @@
-
+const { imgDir } = require('../server')
 const query = require('../db/db')
 async function getGoodsTitle(req, res) {
     let classList = await getClasses();
@@ -21,6 +21,7 @@ function _getGoodsFromClassId(classId) {
         query('SELECT * FROM `goods` WHERE classid = ? LIMIT 5', [classId], (error, result) => {
             let data = result.map(val => {
                 return {
+                    id: val.id,
                     title: val.title,
                     info: val.info,
                     latitude: val.latitude,
@@ -53,7 +54,17 @@ getClasses = () => {
 
 getGoodsAll = (req, res) => {
     query('SELECT * FROM `goods`', (error, result) => {
-        res.end(JSON.stringify(result))
+        try {
+            result = result.map((val => (val.banner_list = JSON.parse(val.banner_list).map((val => (
+                imgDir + val
+            ))), val)
+            ))
+
+        } catch (e) {
+            console.log(e)
+            res.json({ err: 1 })
+        }
+        res.json({ err: 0, data: result })
     })
 }
 
