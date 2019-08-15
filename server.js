@@ -171,6 +171,7 @@ app.post('/getReferFromGoodsid', (req, res) => {
 
 var privateKey = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.key'), 'utf8');
 var certificate = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.pem'), 'utf8');
+
 var credentials = { key: privateKey, cert: certificate };
 
 const server = https.createServer(credentials, app);
