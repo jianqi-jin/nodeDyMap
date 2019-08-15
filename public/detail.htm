@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <a href="/index.htm">返回主页</a>
+    <a href="/index.html">返回主页</a>
     <h1>商品-详情</h1>
     <div id='root'>
         <div style='border:2px solid green;padding: 20px;'>
@@ -57,7 +57,7 @@
         <h3>图文说明</h3>
         <a :href="'/rich.html?goodsid='+goodsInfo.id">设置图文</a>
         <div class="twBox">
-            <div v-html='goodsInfo.rich.rich_node'></div>
+            <div v-html='goodsInfo.rich?goodsInfo.rich.rich_node:""'></div>
         </div>
 
         <div class="logBox">

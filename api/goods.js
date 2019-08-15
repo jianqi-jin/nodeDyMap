@@ -21,7 +21,7 @@ const insertGood = (req, res) => {
         })
 }
 async function deleGoods(req, res) {
-    query("DELETE FROM `goods` WHERE (`id`= ?)",[req.body.goodsid], (err, result) => {
+    query("DELETE FROM `goods` WHERE (`id`= ?)", [req.body.goodsid], (err, result) => {
         res.json({
             err: !!err,
             msg: err,
@@ -95,12 +95,17 @@ async function updateGoods(req, res) {
     const fileIndex = 0
     for (const index in imgchangelist) {
         if (imgchangelist[index]) {
-            await deleImg(oldImgs[index])
-            oldImgs[index] = files[fileIndex]
-            fileIndex += 1;
+            try {
+                await deleImg(oldImgs[index])
+                oldImgs[index] = files[fileIndex].filename
+                fileIndex += 1;
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
     let banner_list = JSON.stringify(oldImgs)
+    console.log(banner_list)
     query("UPDATE `goods` SET `title`=?, `info`=?, `classid`=?, `banner_list`=?, `latitude`=?, `longitude`=? WHERE (`id`=?)",
         [params.title, params.info, params.classid, banner_list, params.latitude, params.longitude, params.id], (err, result) => {
 
