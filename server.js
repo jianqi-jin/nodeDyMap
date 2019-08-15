@@ -119,16 +119,16 @@ app.post('/updateRefer', uploadMiddleware, (req, res) => {
 })
 
 app.get('/index.html', function (req, res) {
-    res.sendFile(__dirname + "/public/" + "index.html");
+    res.sendFile(__dirname + "/public/" + "index.htm");
 })
 app.get('/detail.html', function (req, res) {
-    res.sendFile(__dirname + "/public/" + "detail.html");
+    res.sendFile(__dirname + "/public/" + "detail.htm");
 })
 app.get('/refer.html', function (req, res) {
-    res.sendFile(__dirname + "/public/" + "refer.html");
+    res.sendFile(__dirname + "/public/" + "refer.htm");
 })
 app.get('/rich.html', function (req, res) {
-    res.sendFile(__dirname + "/public/" + "rich.html");
+    res.sendFile(__dirname + "/public/" + "rich.htm");
 })
 app.post('/deleRich', (req, res) => {
     deleRich(req, res)
