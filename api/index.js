@@ -11,7 +11,7 @@ async function getGoodsTitle(req, res) {
             list
         })
     }
-    res.end(JSON.stringify(data))
+    res.json(data)
 }
 
 

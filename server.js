@@ -49,7 +49,7 @@ const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refe
 const { uploadRich } = require('./api/rich')
 const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
 const { _getAllClass } = require('./api/class')
-
+const {searchGoodsByKey} = require('./api/search')
 const { deleImg } = require('./api/utils')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
@@ -112,6 +112,9 @@ app.get('/getAllClass', (req, res) => {
     _getAllClass().then(result => {
         res.json(result)
     })
+})
+app.post('/searchGoods', (req, res) => {
+    searchGoodsByKey(req, res)
 })
 
 app.post('/updateRefer', uploadMiddleware, (req, res) => {
