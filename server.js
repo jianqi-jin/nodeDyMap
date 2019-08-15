@@ -1,12 +1,14 @@
 var express = require('express');
 var app = express();
 var fs = require("fs");
-
+var path = require('path')
 var bodyParser = require('body-parser');
 var multer = require('multer');
 const query = require('./db/db')
-exports.serverUri = 'http://localhost:8081/'
-exports.imgDir = 'http://localhost:8081/uploads/'
+// exports.serverUri = 'https://localhost:8081/'
+exports.serverUri = 'https://nepu.fun:8081/'
+// exports.imgDir = 'https://localhost:8081/uploads/'
+exports.imgDir = 'https://nepu.fun:8081/uploads/'
 exports.uploadsDir = './uploads/'
 app.use('/public', express.static('public'));
 app.use('/uploads', express.static('uploads'));
@@ -39,6 +41,8 @@ const uploadMiddleware = (req, res, next) => {
         }
     })
 }
+const https = require('https')
+
 const api = require('./api/index')
 const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = require('./api/goods')
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
@@ -165,12 +169,18 @@ app.post('/getReferFromGoodsid', (req, res) => {
 //     });
 // })
 
-var server = app.listen(8081, function () {
+var privateKey = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.key'), 'utf8');
+var certificate = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.pem'), 'utf8');
+var credentials = { key: privateKey, cert: certificate };
+
+const server = https.createServer(credentials, app);
+
+server.listen(8081, function () {
 
     var host = server.address().address
     var port = server.address().port
 
-    console.log("应用实例，访问地址为 http://%s:%s", host, port)
+    console.log("应用实例，访问地址为 https://%s:%s", host, port)
 
 })
 
