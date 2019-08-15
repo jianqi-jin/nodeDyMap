@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>推荐</title>
+</head>
+
+<body>
+    <a href="/index.htm">返回主页</a>
+    <div id="root">
+
+        <h1>{{msg}}</h1>
+        <a @click='showAdd' href="#">{{(addFlag || editFlag)?'全部纪录':'添加新纪录'}}</a>
+
+        <button @click='getReferAll'>获取全部refer</button>
+        <div v-if='addFlag'>
+
+            <form action="/insertRefer" enctype="multipart/form-data" method="POST">
+                <table border='1'>
+                    <thead>
+                        <tr>
+                            <td>编号id</td>
+                            <td>title</td>
+                            <td>info</td>
+                            <td>thunb</td>
+                            <td>goodsid</td>
+                            <td>操作</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>添加新纪录</td>
+                            <td> title:<input type="text" name="title"></td>
+                            <td> info: <input type="text" name="info"></td>
+                            <td> image:<input type="file" name="image"></td>
+                            <td> goodsid:<input type="text" name="goodsid"></td>
+                            <td><input type="submit" value="上传"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+        <div v-if='editFlag'>
+            <table border='1'>
+                <thead>
+                    <tr>
+                        <td>编号id</td>
+                        <td>title</td>
+                        <td>info</td>
+                        <td>thunb</td>
+                        <td>goodsid</td>
+                        <td>操作</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{currentForm.id}}</td>
+                        <td><input type="text" v-model='currentForm.title'></td>
+                        <td><input type="text" v-model='currentForm.info'></td>
+                        <td>
+                            <div style="width: 100px;height: 100px;overflow:hidden;">
+                                <input type="file" @change='fileChange'>
+                                <img style="width: 100px;" :src="currentForm.thumb" />
+                            </div>
+                        </td>
+                        <td><input type="text" v-model='currentForm.goodsid'></td>
+                        <td><button @click='updateSub'>提交修改</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-if='!editFlag && !addFlag'>
+            <h3>记录</h3>
+            <table border='1'>
+                <thead>
+                    <tr>
+                        <td>编号id</td>
+                        <td>title</td>
+                        <td>info</td>
+                        <td>thunb</td>
+                        <td>goodsid</td>
+                        <td>操作</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for='(item, index) in referList'>
+                        <td>{{item.id}}</td>
+                        <td>{{item.title}}</td>
+                        <td>{{item.info}}</td>
+                        <td>
+                            <div style="width: 100px;height:100px;overflow:hidden;">
+                                <img style="width: 100px;" :src="item.thumb" alt="">
+                            </div>
+                        </td>
+                        <td>{{item.goodsid}}</td>
+                        <td>
+                            <button @click='showEdit(item)'>修改</button>
+                            <button @click='deleRefer(item)'>删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+</body>
+
+<script src="/public/vue.js"></script>
+<script src="/public/axios.js"></script>
+<script src="/public/function.js"></script>
+
+<script>
+
+    const vue = new Vue({
+        el: '#root',
+        data: {
+            editFlag: false,
+            addFlag: false,
+            msg: '推荐页',
+            referList: [],
+            currentForm: {
+                id: null,
+                title: null,
+                info: null,
+                thumb: null
+            },
+            editFile: null
+        },
+        methods: {
+            showEdit(e) {
+
+                this.currentForm = { ...e }
+                this.editFile = null;
+                this.addFlag = false;
+                this.editFlag = !this.editFlag
+            },
+            deleRefer(e) {
+                axios.post('/deleRefer', { id: e.id }).then(res => {
+                    this.getReferAll()
+                })
+            },
+            fileChange(e) {
+                console.log(e)
+                let reader = new FileReader();
+                let img = e.target.files[0];
+                this.editFile = img;
+            },
+            updateSub() {
+                let img = this.editFile;
+                let form = new FormData();
+                if (img) {
+                    form.append('image', img);
+                }
+                form.append('title', this.currentForm.title)
+                form.append('id', this.currentForm.id)
+                form.append('goodsid', this.currentForm.goodsid)
+                form.append('info', this.currentForm.info)
+                console.log(form)
+                axios.post('/updateRefer', form).then(res => {
+                    console.log(res)
+                    if (!res.err) {
+                        this.showAdd()
+                    }
+                })
+            },
+            showAdd() {
+                if (this.editFlag) {
+                    this.addFlag = false
+                    this.editFlag = false
+                } else {
+                    this.addFlag = !this.addFlag
+                }
+                this.getReferAll()
+            },
+            getReferAll() {
+                let type = getParam('type')
+                if (type == 'all') {
+                    axios.get('/getReferAll').then(res => {
+                        console.log(res)
+                        this.referList = res.data.data
+                    })
+                } else {
+                    axios.post('/getReferFromGoodsid', { goodsid: getParam('goodsid') }).then(res => {
+                        console.log(res)
+                        this.referList = res.data.data
+                    })
+                }
+            }
+        },
+        created() {
+            this.getReferAll()
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>主页</title>
+</head>
+
+<body>
+
+
+
+    <h1>主页</h1>
+
+    <!-- <a href="/detail.html">商品详情</a> -->
+    <a href="/refer.htm?type=all">推荐详情</a>
+    <a href="/rich.htm">富文本</a>
+
+    <div id="app">
+
+        <button @click='getGoodsAll'>getAllGoods</button>
+        {{message}}
+        <form action="/insertGood" method="post" enctype="multipart/form-data">
+
+            <table style="width: 100%;" border='1'>
+                <thead>
+                    <td>id</td>
+                    <td>title</td>
+                    <td>info</td>
+                    <td>banner</td>
+                    <td>classid</td>
+                    <td>referid</td>
+                    <td>richid</td>
+                    <td>latitude</td>
+                    <td>longitude</td>
+                    <td>操作</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>添加新纪录</td>
+                        <td>title:<input type="text" name='title' v-model='goodForm.title' /></td>
+                        <td>info:<input type="text" name='info' v-model='goodForm.info' /></td>
+                        <td>banner:<input type="file" name='image' v-on='goodForm.banner_list' />
+                            <input type="file" name='image' v-on='goodForm.banner_list' />
+                            <input type="file" name='image' v-on='goodForm.banner_list' />
+                            <input type="file" name='image' v-on='goodForm.banner_list' />
+                            <input type="file" name='image' v-on='goodForm.banner_list' /><br>
+                        <td>classid:<input type="text" name='classid' v-model='goodForm.classid' /></td>
+                        <td>referid:<input type="text" name='refer_list' v-model='goodForm.refer_list' /></td>
+                        <td>richid:<input type="text" name='richid' v-model='goodForm.richid' /></td>
+                        <td>latitude:<input type="text" name='latitude' v-model='goodForm.latitude' /></td>
+                        <td>longitude:<input type="text" name='longitude' v-model='goodForm.longitude' /></td>
+                        <td>
+                            <input type="submit" value="上传">
+                        </td>
+                    </tr>
+
+
+
+                </tbody>
+            </table>
+        </form>
+
+        <table border='1'>
+            <thead>
+
+                <td>id</td>
+                <td>title</td>
+                <td>info</td>
+                <td>banner</td>
+                <td>classid</td>
+                <td>referid</td>
+                <td>richid</td>
+                <td>latitude</td>
+                <td>longitude</td>
+                <td>操作</td>
+            </thead>
+            <tbody>
+                <tr v-for='(item, index) in goods'>
+                    <td>{{item.id}}</td>
+                    <td><a v-bind:href="'detail.html?goodsid='+item.id">{{item.title}}</a></td>
+                    <td>{{item.info}}</td>
+                    <td>
+                        <image style="width: 100px;" v-for='(bannerItem, index) in item.banner_list'
+                            v-bind:src='bannerItem'></image>
+                    </td>
+                    <td>{{item.classid}}</td>
+                    <td>{{item.refer_list}}</td>
+                    <td>{{item.richid}}</td>
+                    <td>{{item.latitude}}</td>
+                    <td>{{item.longitude}}</td>
+                    <td>
+                        <button @click='deleGoods(item.id)'>删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</body>
+<script src="/public/vue.js"></script>
+<script src="/public/axios.js"></script>
+<script>
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'hello Vue',
+            goods: [],
+            goodForm: {
+                title: '',
+                info: '',
+                file: null,
+                banner_list: null,
+                richid: '',
+                latitude: '',
+                longitude: '',
+                classid: '',
+                refer_list: ''
+            },
+            value: {}
+        },
+        methods: {
+            deleGoods(goodsid) {
+                axios.post('/deleGoods', { goodsid }).then(res => {
+                    this.err = res.data.msg || '删除成功'
+                    this.getGoodsAll()
+                })
+            },
+            getGoodsAll() {
+                axios.get('/getGoodsAll').then(res => {
+                    this.goods = res.data.data;
+                    console.log(this.goods)
+                })
+            },
+            onSubmit() {
+                console.log('submit')
+                let param = new FormData();
+                param = this.goodForm;
+                console.log(param)
+            }
+        },
+        created() {
+            this.getGoodsAll()
+        },
+    })
+
+
+
+
+
+</script>
+
+</html>

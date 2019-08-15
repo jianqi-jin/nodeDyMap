@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>详情</title>
+</head>
+
+<body>
+    <a href="/index.htm">返回主页</a>
+    <h1>商品-详情</h1>
+    <div id='root'>
+        <div style='border:2px solid green;padding: 20px;'>
+            <h2>基本信息</h2>
+            <h3>标题</h3>
+            <div class="titleBox">
+                <input type="text" v-model='goodsInfo.title'>
+            </div>
+            <h3>详情</h3>
+            <div class="infoBox">
+                <input type="text" v-model='goodsInfo.info'>
+            </div>
+            <h3>经纬度</h3>
+            <div class="infoBox">
+                经度：<input type="text" v-model='goodsInfo.latitude'>
+                维度：<input type="text" v-model='goodsInfo.longitude'>
+            </div>
+            <h3>类型 classid</h3>
+            <div class="infoBox">
+                classid：<input type="text" v-model='goodsInfo.classid'>
+                {{classList}}
+            </div>
+            <h3>轮播图</h3>
+            <div class="bannerBox">
+                <div v-for='(item, index) in goodsInfo.banner_list' class="bannerItem">
+                    <input type="file" @change='onImgChange($event,index)'>
+                    <img :src="item" alt="">
+
+                </div>
+            </div>
+
+            <button @click='updateGoods'>保存修改</button>
+        </div>
+        <h3>推荐</h3>
+        <a :href="'/refer.html?type=goods&goodsid='+goodsInfo.id" class="uploadRefer">设置推荐</a>
+        <div class="referBox">
+            <div style="border:1px solid #ccc;margin:20px;" class="referItem"
+                v-for='(item, index) in goodsInfo.referList'>
+                <div class="referImg">
+                    <img class="referImgBox" :src="item.thumb" alt="">
+                </div>
+                <div class="referTitle">标题：{{item.title}}</div>
+                <div class="referTitleInfo">说明：{{item.info}}</div>
+            </div>
+        </div>
+        <h3>图文说明</h3>
+        <a :href="'/rich.html?goodsid='+goodsInfo.id">设置图文</a>
+        <div class="twBox">
+            <div v-html='goodsInfo.rich.rich_node'></div>
+        </div>
+
+        <div class="logBox">
+            <h3>err Log</h3>
+            {{err}}
+        </div>
+    </div>
+    <link rel="stylesheet" href="/public/commonStyle.css">
+</body>
+
+<style>
+    .referImg {
+        width: 100px;
+        height: 100px;
+        overflow: hidden;
+    }
+
+    .referImgBox {
+        width: 100px;
+    }
+
+    .referBox {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .bannerBox {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .bannerItem {
+        width: 300px;
+        max-height: 300px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+        margin: 20px;
+    }
+
+    .bannerItem img {
+        width: 100%;
+
+    }
+</style>
+
+<script src="/public/vue.js"></script>
+<script src="/public/axios.js"></script>
+<script src="/public/function.js"></script>
+<script>
+
+
+    const app = new Vue({
+        el: '#root',
+        data: {
+            goodsid: null,
+            goodsInfo: {
+                rich: {}
+            },
+            currentForm: {},
+            images: [],
+            classList: [],
+            err: ''
+        },
+        methods: {
+            getGoods() {
+                axios.post('/getGoods', {
+                    goodsid: this.goodsid
+                }).then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    this.goodsInfo = res.data.data
+                    console.log(res.data.data)
+                })
+            },
+            updateGoods() {
+                let form = new FormData();
+                let i = 0;
+                let imgChangeFlagList = []
+                for (const item of this.images) {
+                    form.append('image', item)
+                    imgChangeFlagList.push(!!item)
+                }
+
+                form.append('id', this.goodsInfo.id);
+                form.append('imgchangelist', JSON.stringify(imgChangeFlagList));
+                form.append('title', this.goodsInfo.title);
+                form.append('info', this.goodsInfo.info);
+                form.append('classid', this.goodsInfo.classid);
+                form.append('latitude', this.goodsInfo.latitude);
+                form.append('longitude', this.goodsInfo.longitude);
+                console.log(form)
+                axios.post('/updateGoods', form).then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    console.log(res)
+                })
+            },
+            getAllClass() {
+                axios.get('/getAllClass').then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    if (!res.err && res.data.data) {
+                        res.data.data.map(val => {
+                            this.classList.push(val.id + ' : ' + val.class_text)
+                        })
+                    } else {
+                        console.log(res.err)
+                    }
+                })
+            },
+            onImgChange(ev, index) {
+                console.log(ev)
+                let file = ev.target.files[0] || null
+                if (file) {
+                    this.images[index] = file
+                }
+
+            }
+        },
+        created() {
+            let goodsid = getParam('goodsid')
+            this.goodsid = goodsid
+            this.getGoods()
+            this.getAllClass()
+        }
+    })
+</script>
+
+</html>

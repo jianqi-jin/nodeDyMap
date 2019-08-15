@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>富文本</title>
+</head>
+
+<body>
+    <a href="/index.htm">返回主页</a>
+    <div id="root">
+        <div>
+            <h1>{{msg}}</h1>
+            goodsid: <input type="text" v-model='goodsid' placeholder="请输入goodsid">
+        </div>
+        <div>
+            <textarea v-model='node' name="" id="" cols="30" rows="10">
+        </textarea>
+        </div>
+        <button @click='uploadRich'>{{msg}}</button>
+        <button @click='getRichAll'>获取所有富文本</button>
+        <table border='1'>
+            <thead>
+                <tr>
+                    <td>编号</td>
+                    <td>goodsid</td>
+                    <td>内容</td>
+                    <td>操作</td>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr v-for='(item, index) in riches'>
+                    <td>{{item.id}}</td>
+                    <td><a :href="'/detail.html?goodsid='+item.goodsid">{{item.goodsid}}</a></td>
+                    <td style="max-height: 200px;max-width:300px;">{{item.rich_node}}</td>
+                    <td style="max-height: 200px;max-width:300px;">
+                        <button @click='deleRich(item.id)'>删除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="logBox">
+            <h3>err log</h3>
+
+            {{err}}
+        </div>
+    </div>
+</body>
+
+<style>
+    .logBox {
+        border: 3px solid green;
+        margin: 10px;
+        padding: 20px;
+    }
+</style>
+<script src="/public/vue.js"></script>
+<script src="/public/axios.js"></script>
+<script src="/public/function.js"></script>
+
+
+<script>
+    const app = new Vue({
+        el: '#root',
+        data: {
+            goodsid: '',
+            node: '',
+            riches: {},
+            msg: '',
+            err: ''
+        },
+        methods: {
+            uploadRich() {
+                axios.post('/insertRich', {
+                    goodsid: this.goodsid,
+                    rich_node: this.node
+                }).then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    this.getRich()
+                    this.getRichAll()
+                })
+            },
+            getRichAll() {
+                axios.get('/getRichAll').then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    this.riches = res.data.data
+                })
+            },
+            getRich() {
+                this.goodsid = getParam('goodsid')
+                if (this.goodsid) {
+                    axios.get('/getRich?goodsid=' + this.goodsid).then(res => {
+                        this.err = res.data.msg || '操作成功'
+
+                        this.node = res.data.data.rich_node
+                    })
+                } else {
+                    this.getRichAll()
+                }
+            },
+            deleRich(id) {
+                axios.post('./deleRich', { id }).then(res => {
+                    this.err = res.data.msg || '删除成功'
+                    this.getRichAll()
+                })
+
+            }
+        },
+        created() {
+            this.goodsid = getParam('goodsid')
+            if (this.goodsid) {
+                this.msg = "修改rich！"
+            } else {
+                this.msg = "添加新rich！"
+            }
+            this.getRich()
+        },
+    })
+</script>
+
+</html>
