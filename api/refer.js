@@ -50,7 +50,11 @@ async function updateRefer(req, res) {
     let queryParams = 'UPDATE '
 
     if (req.files && req.files.length > 0) {
-        let deletRes = await deleImg(refer.thumb);
+        try{
+        let deletRes = await deleImg(refer[0].thumb);
+        }catch(e){
+            console.log(e)
+        }
         // if (deletRes) {
         //     res.json({
         //         err: 1,

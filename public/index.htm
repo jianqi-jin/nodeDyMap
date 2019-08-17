@@ -21,19 +21,40 @@
 
         <button @click='getGoodsAll'>getAllGoods</button>
         {{message}}
+
+        <h3>类型设置</h3>
+        <table border='1'>
+            <tr>
+                <td>编号</td>
+                <td>类型</td>
+                <td>操作</td>
+            </tr>
+            <tr v-for='(item, index) in classList'>
+                <td>
+                    {{item.id||'添加'}}
+                </td>
+                <td>
+                    <input v-model='item.class_text' />
+                </td>
+                <td>
+                    <button @click='updateClass(item)'>{{item.id?"修改":"添加"}}</button>
+                </td>
+            </tr>
+        </table>
+        <h3>商品设置</h3>
         <form action="/insertGood" method="post" enctype="multipart/form-data">
 
             <table style="width: 100%;" border='1'>
                 <thead>
                     <td>id</td>
-                    <td>title</td>
-                    <td>info</td>
-                    <td>banner</td>
-                    <td>classid</td>
-                    <td>referid</td>
-                    <td>richid</td>
-                    <td>latitude</td>
-                    <td>longitude</td>
+                    <td>标题(title)</td>
+                    <td>说明(info)</td>
+                    <td>轮播图(banner)</td>
+                    <td>类型id(classid)</td>
+                    <!-- <td>referid</td>
+                    <td>(richid)</td> -->
+                    <td>经度(longitude)</td>
+                    <td>纬度(latitude)</td>
                     <td>操作</td>
                 </thead>
                 <tbody>
@@ -47,10 +68,11 @@
                             <input type="file" name='image' v-on='goodForm.banner_list' />
                             <input type="file" name='image' v-on='goodForm.banner_list' /><br>
                         <td>classid:<input type="text" name='classid' v-model='goodForm.classid' /></td>
-                        <td>referid:<input type="text" name='refer_list' v-model='goodForm.refer_list' /></td>
-                        <td>richid:<input type="text" name='richid' v-model='goodForm.richid' /></td>
-                        <td>latitude:<input type="text" name='latitude' v-model='goodForm.latitude' /></td>
+                        <!-- <td>referid:<input type="text" name='refer_list' v-model='goodForm.refer_list' /></td>
+                        <td>richid:<input type="text" name='richid' v-model='goodForm.richid' /></td> -->
                         <td>longitude:<input type="text" name='longitude' v-model='goodForm.longitude' /></td>
+                        <td>latitude:<input type="text" name='latitude' v-model='goodForm.latitude' /></td>
+                        
                         <td>
                             <input type="submit" value="上传">
                         </td>
@@ -66,14 +88,14 @@
             <thead>
 
                 <td>id</td>
-                <td>title</td>
-                <td>info</td>
-                <td>banner</td>
-                <td>classid</td>
-                <td>referid</td>
-                <td>richid</td>
-                <td>latitude</td>
-                <td>longitude</td>
+                <td>标题(title)</td>
+                <td>说明(info)</td>
+                <td>轮播图(banner)</td>
+                <td>类型id(classid)</td>
+                <!-- <td>referid</td>
+                <td>(richid)</td> -->
+                <td>经度(longitude)</td>
+                <td>纬度(latitude)</td>
                 <td>操作</td>
             </thead>
             <tbody>
@@ -86,10 +108,10 @@
                             v-bind:src='bannerItem'></image>
                     </td>
                     <td>{{item.classid}}</td>
-                    <td>{{item.refer_list}}</td>
-                    <td>{{item.richid}}</td>
-                    <td>{{item.latitude}}</td>
+                    <!-- <td>{{item.refer_list}}</td>
+                    <td>{{item.richid}}</td> -->
                     <td>{{item.longitude}}</td>
+                    <td>{{item.latitude}}</td>
                     <td>
                         <button @click='deleGoods(item.id)'>删除</button>
                     </td>
@@ -119,9 +141,23 @@
                 classid: '',
                 refer_list: ''
             },
-            value: {}
+            value: {},
+            classList: []
         },
         methods: {
+            updateClass(item){
+                console.log(item);
+
+                axios.post('./updateClass',{
+                    classid: item.id,
+                    classname: item.class_text
+                }).then(res => {
+                    this.err = res.data.msg || '操作成功'
+                    if(!res.data.err){
+                        this.getAllClass()
+                    }
+                })
+            },
             deleGoods(goodsid) {
                 axios.post('/deleGoods', { goodsid }).then(res => {
                     this.err = res.data.msg || '删除成功'
@@ -139,10 +175,29 @@
                 let param = new FormData();
                 param = this.goodForm;
                 console.log(param)
-            }
+            },
+            getAllClass() {
+                this.classList = []
+                axios.get('/getAllClass').then(res => {
+
+                    this.err = res.data.msg || '操作成功'
+                    if (!res.err && res.data.data) {
+                        res.data.data.map(val => {
+                            this.classList.push({
+                                id: val.id ,
+                                class_text:  val.class_text
+                            })
+                        })
+                        this.classList.push({})
+                    } else {
+                        console.log(res.err)
+                    }
+                })
+            },
         },
         created() {
             this.getGoodsAll()
+            this.getAllClass()
         },
     })
 

@@ -48,7 +48,7 @@ const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = re
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
 const { uploadRich } = require('./api/rich')
 const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
-const { _getAllClass } = require('./api/class')
+const { _getAllClass, updateClass } = require('./api/class')
 const {searchGoodsByKey} = require('./api/search')
 const { deleImg } = require('./api/utils')
 app.get('/insert', (req, res) => {
@@ -73,7 +73,9 @@ app.get('/getReferAll', (req, res) => {
     getReferAll(req, res)
 })
 
-
+app.post('/updateClass', (req, res) => {
+    updateClass(req ,res)
+})
 app.get('/getGoodsTitle', (req, res) => {
     api.getGoodsTitle(req, res)
 })

@@ -23,8 +23,8 @@
             </div>
             <h3>经纬度</h3>
             <div class="infoBox">
-                经度：<input type="text" v-model='goodsInfo.latitude'>
-                维度：<input type="text" v-model='goodsInfo.longitude'>
+                经度：<input type="text" v-model='goodsInfo.longitude'>
+                维度：<input type="text" v-model='goodsInfo.latitude'>
             </div>
             <h3>类型 classid</h3>
             <div class="infoBox">
@@ -36,8 +36,8 @@
                 <div v-for='(item, index) in goodsInfo.banner_list' class="bannerItem">
                     <input type="file" @change='onImgChange($event,index)'>
                     <img :src="item" alt="">
-
                 </div>
+                
             </div>
 
             <button @click='updateGoods'>保存修改</button>
@@ -128,6 +128,7 @@
                 }).then(res => {
                     this.err = res.data.msg || '操作成功'
                     this.goodsInfo = res.data.data
+                    this.goodsInfo.banner_list.push({})
                     console.log(res.data.data)
                 })
             },
@@ -150,6 +151,10 @@
                 console.log(form)
                 axios.post('/updateGoods', form).then(res => {
                     this.err = res.data.msg || '操作成功'
+                    if(!res.data.err){
+                        console.log('reload')
+                        this.getGoods()
+                    }
                     console.log(res)
                 })
             },
