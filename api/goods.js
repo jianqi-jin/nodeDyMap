@@ -60,6 +60,16 @@ async function getGoodsFromId(req, res) {
     }
 }
 
+const _betterBanner = (str) => {
+    try{
+
+    str = JSON.parse(str);
+    arr = str.map(val => (imgDir + val));
+    return arr;
+    }catch(e){
+        return []
+    }
+}
 
 const _getGoods = (goodsid) => {
     return new Promise(resolve => {
@@ -127,10 +137,23 @@ async function updateGoods(req, res) {
 
 }
 
+
+const getGoodsFromClass = (req, res) => {
+    let params = req.body;
+    query('SELECT * FROM `goods` WHERE `classid` = ?', [params.classid], (err, result) => {
+        res.json({
+            err: !!err,
+            msg: err,
+            data: result.map(val => (val.banner_list = _betterBanner(val.banner_list), val))
+        })
+    })
+}
+
 module.exports = {
     insertGood,
     getGoodsFromId,
     _getReferList,
     updateGoods,
-    deleGoods
+    deleGoods,
+    getGoodsFromClass
 };

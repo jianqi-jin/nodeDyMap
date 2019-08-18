@@ -1,3 +1,10 @@
+
+const secret = 'fc954e8a61f619d416306a28d6779dd9'
+const appId = 'wxd794b58c0c700c20'
+exports.secret = secret
+exports.appId = appId
+const axios = require('axios')
+const WXBizDataCrypt = require('./WXBizDataCrypt')
 var express = require('express');
 var app = express();
 var fs = require("fs");
@@ -44,13 +51,14 @@ const uploadMiddleware = (req, res, next) => {
 const https = require('https')
 
 const api = require('./api/index')
-const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = require('./api/goods')
+const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods, getGoodsFromClass } = require('./api/goods')
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
 const { uploadRich } = require('./api/rich')
 const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
 const { _getAllClass, updateClass } = require('./api/class')
 const {searchGoodsByKey} = require('./api/search')
 const { deleImg } = require('./api/utils')
+const {auth, getOpenId, getUserInfo } = require('./api/user')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -82,7 +90,9 @@ app.get('/getGoodsTitle', (req, res) => {
 app.get('/getGoodsAll', (req, res) => {
     api.getGoodsAll(req, res)
 })
-
+app.get('/getClass', (req, res) => {
+    api.getClasses(req, res)
+})
 
 app.post('/getGoods', (req, res) => {
     getGoodsFromId(req, res)
@@ -99,6 +109,9 @@ app.get('/getRich', (req, res) => {
     })
 })
 
+app.post('/getGoodsFromClass', (req, res) => {
+    getGoodsFromClass(req, res)
+})
 
 app.post('/insertGood', uploadMiddleware, (req, res) => {
     insertGood(req, res)
@@ -143,6 +156,16 @@ app.post('/deleRefer', (req, res) => {
 })
 app.post('/updateRich', (req, res) => {
     updateRich(req, res)
+})
+app.post('/getOpenId', (req, res) => {
+    getOpenId(req, res)
+})
+
+app.post('/auth', (req, res) => {
+    auth(req, res)
+})
+app.get('/getUserInfo', (req, res) => {
+    getUserInfo(req, res)
 })
 
 app.post('/getReferFromGoodsid', (req, res) => {
@@ -189,6 +212,7 @@ server.listen(8081, function () {
     console.log("应用实例，访问地址为 https://%s:%s", host, port)
 
 })
+
 
 
 
