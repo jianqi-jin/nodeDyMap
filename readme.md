@@ -40,3 +40,18 @@
 |-|-|-|
 |id|主键|
 |class_text|类型内容|
+### group
+|字段|说明|类型|例子|
+|-|-|-|-|
+|id|主键|int|
+|title|主键|string|社联|
+|member_num|主键|string|
+|info|主键|string|
+|avatar|主键|string|"1577765465216.png"|
+|banner_list|轮播图|string|["1577765465861.png","1577765465861.png"]|
+### group_rich
+|字段|说明|类型|例子|
+|-|-|-|-|
+|id|主键|int|
+|rich|富文本|string|
+|group_id|社团id|int|
