@@ -1,12 +1,14 @@
 var express = require('express');
 var app = express();
 var fs = require("fs");
-
+var path = require('path')
 var bodyParser = require('body-parser');
 var multer = require('multer');
 const query = require('./db/db')
-exports.serverUri = 'http://localhost:8081/'
-exports.imgDir = 'http://localhost:8081/uploads/'
+// exports.serverUri = 'https://localhost:8081/'
+exports.serverUri = 'https://nepu.fun:8081/'
+// exports.imgDir = 'https://localhost:8081/uploads/'
+exports.imgDir = 'https://nepu.fun:8081/uploads/'
 exports.uploadsDir = './uploads/'
 app.use('/public', express.static('public'));
 app.use('/uploads', express.static('uploads'));
@@ -167,8 +169,8 @@ app.post('/getReferFromGoodsid', (req, res) => {
 //     });
 // })
 
-var privateKey = fs.readFileSync('./certificate/private.key', 'utf8');
-var certificate = fs.readFileSync('./certificate/ca.pem', 'utf8');
+var privateKey = fs.readFileSync(path.join(__dirname, './certificate/private.key'), 'utf8');
+var certificate = fs.readFileSync(path.join(__dirname, './certificate/ca.pem'), 'utf8');
 var credentials = { key: privateKey, cert: certificate };
 
 const server = https.createServer(credentials, app);
