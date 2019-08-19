@@ -59,6 +59,7 @@ const { _getAllClass, updateClass } = require('./api/class')
 const {searchGoodsByKey} = require('./api/search')
 const { deleImg } = require('./api/utils')
 const {auth, getOpenId, getUserInfo } = require('./api/user')
+const { addGroup, updateGroupAvatar } = require('./api/group/group')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -70,6 +71,16 @@ app.get('/insert', (req, res) => {
     })
 
 })
+
+// group start
+app.post('/addGroup', (req, res) => {
+    addGroup(req, res)
+})
+app.post('updateGroupAvatar', uploadMiddleware, (req, res) => {
+    updateGroupAvatar(req, res)
+})
+// group end
+
 app.post('/deleGoods', (req, res) => {
     deleGoods(req, res)
 })
