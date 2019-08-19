@@ -1,7 +1,7 @@
 const { imgDir } = require('../server')
 const query = require('../db/db')
 async function getGoodsTitle(req, res) {
-    let classList = await getClasses();
+    let classList = await _getClasses();
     const data = [];
     for (const classItem of classList) {
         let list = await _getGoodsFromClassId(classItem.id);
@@ -11,7 +11,7 @@ async function getGoodsTitle(req, res) {
             list
         })
     }
-    res.end(JSON.stringify(data))
+    res.json(data)
 }
 
 
@@ -35,7 +35,7 @@ function _getGoodsFromClassId(classId) {
 }
 
 
-getClasses = () => {
+_getClasses = () => {
     return new Promise(resolve => {
         query('SELECT * FROM `classes`', (error, result) => {
             if (error) {
@@ -50,6 +50,14 @@ getClasses = () => {
     })
 }
 
+async function getClasses (req, res) {
+    let classes = await _getClasses();
+    res.json({
+        err: !!classes.error,
+        msg: classes.msg,
+        result: classes
+    })
+}
 
 
 getGoodsAll = (req, res) => {
@@ -73,5 +81,6 @@ getGoodsAll = (req, res) => {
 
 module.exports = {
     getGoodsTitle,
-    getGoodsAll
+    getGoodsAll,
+    getClasses
 }

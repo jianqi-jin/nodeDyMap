@@ -10,7 +10,7 @@ const insertGood = (req, res) => {
     let banner = JSON.stringify(bannerArr);
     let params = req.body;
     query("INSERT INTO `goods` (`title`, `info`, `classid`, `refer_list`, `banner_list`, `richid`, `latitude`, `longitude`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [params.title, params.info, params.classid, params.refer_list, banner, params.richid, params.latitude, params.longitude],
+        [params.title, params.info, params.classid, params.refer_list||'', banner, params.richid||'', params.latitude, params.longitude],
         (error, result, fields) => {
             if (error) {
                 res.end(JSON.stringify(error.message))
@@ -21,7 +21,16 @@ const insertGood = (req, res) => {
         })
 }
 async function deleGoods(req, res) {
-    query("DELETE FROM `goods` WHERE (`id`= ?)",[req.body.goodsid], (err, result) => {
+    try{
+        let goodsInfo = await _getGoods(req.body.goodsid);
+            let banner_list = JSON.parse(goodsInfo.banner_list)
+            for (const j in banner_list){
+                await deleImg(banner_list[j])
+            }
+    }catch(e){
+        console.log(e)
+    }
+    query("DELETE FROM `goods` WHERE (`id`= ?)", [req.body.goodsid], (err, result) => {
         res.json({
             err: !!err,
             msg: err,
@@ -51,6 +60,16 @@ async function getGoodsFromId(req, res) {
     }
 }
 
+const _betterBanner = (str) => {
+    try{
+
+    str = JSON.parse(str);
+    arr = str.map(val => (imgDir + val));
+    return arr;
+    }catch(e){
+        return []
+    }
+}
 
 const _getGoods = (goodsid) => {
     return new Promise(resolve => {
@@ -84,23 +103,27 @@ const _getReferList = (goodsid) => {
 
 
 async function updateGoods(req, res) {
-    console.log(req.body)
     let params = req.body;
     let files = req.files;
-    console.log(req.files)
     let goodsInfo = await _getGoods(params.id)
     let oldImgs = JSON.parse(goodsInfo.banner_list)
 
     let imgchangelist = JSON.parse(params.imgchangelist)
-    const fileIndex = 0
+    let fileIndex = 0
+    console.log(imgchangelist,oldImgs,files )
     for (const index in imgchangelist) {
         if (imgchangelist[index]) {
-            await deleImg(oldImgs[index])
-            oldImgs[index] = files[fileIndex]
-            fileIndex += 1;
+            try {
+                await deleImg(oldImgs[index])
+                oldImgs[index] = files[fileIndex].filename
+                fileIndex += 1;
+            } catch (e) {
+                console.log(e)
+            }
         }
     }
     let banner_list = JSON.stringify(oldImgs)
+    console.log(banner_list)
     query("UPDATE `goods` SET `title`=?, `info`=?, `classid`=?, `banner_list`=?, `latitude`=?, `longitude`=? WHERE (`id`=?)",
         [params.title, params.info, params.classid, banner_list, params.latitude, params.longitude, params.id], (err, result) => {
 
@@ -114,10 +137,23 @@ async function updateGoods(req, res) {
 
 }
 
+
+const getGoodsFromClass = (req, res) => {
+    let params = req.body;
+    query('SELECT * FROM `goods` WHERE `classid` = ?', [params.classid], (err, result) => {
+        res.json({
+            err: !!err,
+            msg: err,
+            data: result.map(val => (val.banner_list = _betterBanner(val.banner_list), val))
+        })
+    })
+}
+
 module.exports = {
     insertGood,
     getGoodsFromId,
     _getReferList,
     updateGoods,
-    deleGoods
+    deleGoods,
+    getGoodsFromClass
 };
