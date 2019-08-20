@@ -22,14 +22,10 @@ async function getGroupAll(req, res) {
     query('SELECT * FROM `group` LIMIT 0,50', (err, result) => {
         result = result.map(val => {
             val.avatar = imgDir + val.avatar
-            try {
-                val.banner_list = JSON.parse(val.banner_list)
-                val.banner_list.map(val => (
-                    imgDir + val
-                ))
-            } catch (error) {
-                return val
-            }
+            val.banner_list = JSON.parse(val.banner_list)
+            val.banner_list = val.banner_list.map(val => (
+                imgDir + val
+            ))
             return val
         })
         res.json({
@@ -72,21 +68,24 @@ async function deleteGroup(req, res) {
     }
 }
 
-const _selectGroup = (groupId) => {
+const _selectGroup = (groupId, havImgHeader = true) => {
     return new Promise(resolve => {
         query('SELECT * FROM `group` WHERE `id` = ?', [groupId], (err, result) => {
-            result.map(val => {
-                val.avatar = imgDir + val.avatar
-                try {
-                    val.banner_list = JSON.parse(val.banner_list)
-                    val.banner_list.map(val => (
-                        imgDir + val
-                    ))
-                } catch (error) {
+            if (havImgHeader) {
+                result.map(val => {
+                    val.avatar = imgDir + val.avatar
+                    try {
+                        val.banner_list = JSON.parse(val.banner_list)
+                        val.banner_list.map(val => (
+                            imgDir + val
+                        ))
+                    } catch (error) {
+                        return val
+                    }
                     return val
-                }
-                return val
-            })
+                })
+            }
+            console.log(result)
             resolve({ err, result })
         })
     })
@@ -169,7 +168,7 @@ async function updateGroup(req, res) {
             //     //判断并删除无用的图片
             // }
             // params.bannerList = JSON.stringify(bannerList);
-            let {err, result} = await _updateGroup(params);
+            let { err, result } = await _updateGroup(params);
             res.json({
                 err: !!err,
                 msg: err,
@@ -186,11 +185,10 @@ async function updateGroup(req, res) {
 }
 
 
-
 const _updateGroup = (params) => {
     return new Promise(resolve => {
-        query("UPDATE `group` SET `member_num`=?, `info`=? WHERE (`id`=?)", [params.member_num, params.info, params.id], (err, result) => {
-            resolve({err,result})
+        query("UPDATE `group` SET `member_num`=?, `title`=?, `info`=? WHERE (`id`=?)", [params.member_num, params.title, params.info, params.id], (err, result) => {
+            resolve({ err, result })
         })
     })
 }
@@ -205,17 +203,60 @@ const _insertGroup = (params) => {
     })
 }
 
+async function updateGroupBanner(req, res) {
+    let params = req.body;
+    console.log(params)
+    let bannerNew = req.files[0].filename;
+    try {
+        let groupInfo = await _selectGroup(params.id, false);
+        if (groupInfo.result[0] && groupInfo.result[0].id) {
+            let bannerList = (JSON.parse(groupInfo.result[0].banner_list));
+            if (bannerList.length <= params.index)//添加
+            {
+                bannerList.push(bannerNew);
+            } else {
+                let bannerOld = bannerList[params.index];//旧的banner
+                bannerList[params.index] = bannerNew;//新的banner 
+                let delRes = await deleImg(bannerOld);//删除旧的banner
+                console.log('删除')
+                console.log(delRes)
+                if (delRes) {
+                    console.log(delRes)//删除错误
+                }
+            }
+            let bannerListStr = JSON.stringify(bannerList);
+            query("UPDATE `group` SET `banner_list` = ? WHERE (`id` = ?)", [bannerListStr, params.id], (err, result) => {
+                res.json({
+                    err: !!err,
+                    msg: err,
+                    data: imgDir + bannerNew //将新的banner传给前台
+                })
+            })
+
+        } else {
+            throw '社团不存在'
+        }
+    } catch (error) {
+        console.log(error)
+        res.json({
+            err: true,
+            msg: error.toString()
+        })
+    }
+
+}
+
+
 async function updateGroupAvatar(req, res) {
     let params = req.body;
     let avatarNew = req.files[0].filename;
-    console.log(params, avatarNew)
     try {
-        let groupInfo = await _selectGroup(params.groupId);
+        let groupInfo = await _selectGroup(params.groupId, false);
         if (groupInfo.result && groupInfo.result[0].id) {
-            let avatar = groupInfo.avatar;
+            let avatar = groupInfo.result[0].avatar;
             if (avatar) {
                 try {
-                    let delRes = deleImg(avatar);
+                    let delRes = await deleImg(avatar);
                 } catch (error) {
                     console.log('删除图片失败', error)
                 }
@@ -224,7 +265,7 @@ async function updateGroupAvatar(req, res) {
                 res.json({
                     err: !!err,
                     msg: err,
-                    data: result
+                    data: imgDir + avatarNew
                 })
             })
         }
@@ -244,5 +285,6 @@ module.exports = {
     updateGroup,
     addGroup,
     getGroupFromId,
-    updateGroupAvatar
+    updateGroupAvatar,
+    updateGroupBanner
 }

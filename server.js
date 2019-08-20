@@ -59,7 +59,7 @@ const { _getAllClass, updateClass } = require('./api/class')
 const { searchGoodsByKey } = require('./api/search')
 const { deleImg } = require('./api/utils')
 const { auth, getOpenId, getUserInfo } = require('./api/user')
-const { addGroup, updateGroupAvatar, getGroupFromId, getGroupAll, updateGroup } = require('./api/group/group')
+const { addGroup, updateGroupAvatar, getGroupFromId, getGroupAll, updateGroup, updateGroupBanner } = require('./api/group/group')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -87,6 +87,9 @@ app.post('/getGroupFromId', (req, res) => {
 })
 app.post('/updateGroup', (req, res) => {
     updateGroup(req, res)
+})
+app.post('/updateGroupBanner', uploadMiddleware, (req, res) => {
+    updateGroupBanner(req, res)
 })
 // group end
 

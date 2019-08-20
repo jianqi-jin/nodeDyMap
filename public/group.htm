@@ -17,6 +17,7 @@
     <!-- <a href="/detail.html">商品详情</a> -->
 
     <div id="app">
+        {{showFlag? '': ' '}}
         <a href="#" @click='toogleShow'>{{showType == 0 ? '添加':'全部'}}</a>
         <table border="1" v-if='showType == 0'>
             <thead>
@@ -49,11 +50,22 @@
             <h3>编号</h3>
             <div>{{currentForm.id}}</div>
             <h3>头像</h3>
-            <div><input type="file" @change='onAvatarChange'>
+            <div style="display: flex;flex-direction:column;">
                 <img width="100px;" :src="currentForm.avatar" alt="">
+                <input type="file" @change='onAvatarChange'>
             </div>
             <h3>轮播图</h3>
-            <div><input type="text" v-model='currentForm.bannerList'></div>
+            <div style="display: flex;flex-direction: row;">
+                <div style="border: 1px solid #ccc;display: flex;flex-direction: column;"
+                    v-for='(item, index) in currentForm.banner_list'>
+                    <!-- <div><button>删除</button></div> -->
+                    <img style="width: 200px;" :src="item" alt="">
+                    <input style="max-width: 150px;" type="file" @change='onBannerChange($event, index)'>
+                </div>
+                <div>
+                    <input type="file" @change='onBannerChange($event)'>
+                </div>
+            </div>
             <h3>标题</h3>
             <div><input type="text" v-model='currentForm.title'></div>
             <h3>详情</h3>
@@ -70,13 +82,14 @@
     var app = new Vue({
         el: '#app',
         data: {
+            showFlag: false,
             showType: 0,//0全部 1添加 2修改
             currentForm: {
                 id: null,
                 title: null,
                 info: null,
                 avatar: null,
-                bannerList: null,
+                bannerList: [],
                 memberNum: null
             },
             groupList: []
@@ -89,6 +102,14 @@
                 }
             },
             addSubmit() {
+                this.currentForm = {
+                    id: null,
+                    title: null,
+                    info: null,
+                    avatar: null,
+                    banner_list: [],
+                    memberNum: null
+                }
                 axios.post('/addGroup',
                     this.currentForm
                 ).then(res => {
@@ -107,6 +128,7 @@
                     if (!res.data.err) {
                         alert('社团信息提交成功');
                         this.showType = 0
+                        this.getGroupAll()
                     }
                 })
             },
@@ -117,12 +139,25 @@
                 form.append('groupId', this.currentForm.id);
                 axios.post('/updateGroupAvatar', form).then(res => {
                     console.log(res)
+                    this.currentForm.avatar = res.data.data;
                 })
-                axios.post('/getGroupFromId', {
-                    groupId: this.currentForm.id
-                }).then(res => {
+            },
+            onBannerChange(ev, index = -1) {
+                let form = new FormData()
+                let img = ev.target.files[0];
+                form.append('image', img);
+                form.append('index', index == -1 ? this.currentForm.banner_list.length : index)
+                form.append('id', this.currentForm.id)
+                axios.post('updateGroupBanner', form).then(res => {
                     console.log(res)
-                    this.currentForm = res.data.data
+                    if (index == -1) {
+
+                        this.currentForm.banner_list.push(res.data.data)
+                        this.showFlag = !this.showFlag
+                        return
+                    }
+                    this.currentForm.banner_list[index] = res.data.data;
+                    this.showFlag = !this.showFlag
                 })
             },
             getGroupAll() {
@@ -132,16 +167,21 @@
                 })
             },
             editGroup(item) {
-                console.log(item)
-                this.currentForm = { ...item }
+                this.currentForm = item
+                console.log(this.currentForm)
                 this.showType = 1
             }
         },
         created() {
             this.getGroupAll()
         },
+        computed: {
+            banner_list() {
+                return this.currentForm.banner_list
+            }
+        },
         watch: {
-            'currentForm': {
+            currentForm: {
                 handler: (val, lodVal) => {
                     console.log('deepwatch')
                 },
