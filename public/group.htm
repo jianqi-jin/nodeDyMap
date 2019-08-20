@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>主页</title>
+</head>
+
+<body>
+
+
+
+    <a href="/index.html">返回首页</a>
+    <h1>社团</h1>
+
+    <!-- <a href="/detail.html">商品详情</a> -->
+
+    <div id="app">
+        <a href="#" @click='toogleShow'>{{showType == 0 ? '添加':'全部'}}</a>
+        <table border="1" v-if='showType == 0'>
+            <thead>
+                <td>编号</td>
+                <td>avatar</td>
+                <td>banner_list</td>
+                <td>title</td>
+                <td>info</td>
+                <td>member_num</td>
+            </thead>
+        </table>
+
+        <div v-if='showType == 1'>
+
+            <!-- 我是添加和修改 Start -->
+            <h3>编号</h3>
+            <div>{{currentForm.id}}</div>
+            <h3>头像</h3>
+            <div><input type="text" v-model='currentForm.avatar'></div>
+            <h3>轮播图</h3>
+            <div><input type="text" v-model='currentForm.bannerList'></div>
+            <h3>标题</h3>
+            <div><input type="text" v-model='currentForm.title'></div>
+            <h3>详情</h3>
+            <div><input type="text" v-model='currentForm.info'></div>
+            <button @click='addSubmit'>提交</button>
+            <!-- 我是添加和修改 End -->
+        </div>
+    </div>
+</body>
+<script src="/public/vue.js"></script>
+<script src="/public/axios.js"></script>
+<script>
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            showType: 0,//0全部 1添加 2修改
+            currentForm: {
+                id: null,
+                title: null,
+                info: null,
+                avatar: null,
+                bannerList: null,
+                memberNum: null
+            }
+        },
+        methods: {
+            toogleShow() {
+                this.showType = this.showType == 0 ? 1 : 0
+            },
+            addSubmit(){
+                console.log(this.currentForm)
+                axios.post('/addGroup',
+                    this.currentForm
+                ).then(res => {
+                    console.log(res)
+                })
+            }
+        }
+    })
+
+
+
+
+
+</script>
+
+</html>

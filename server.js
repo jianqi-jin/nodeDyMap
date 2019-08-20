@@ -1,3 +1,10 @@
+
+const secret = 'fc954e8a61f619d416306a28d6779dd9'
+const appId = 'wxd794b58c0c700c20'
+exports.secret = secret
+exports.appId = appId
+const axios = require('axios')
+const WXBizDataCrypt = require('./WXBizDataCrypt')
 var express = require('express');
 var app = express();
 var fs = require("fs");
@@ -44,13 +51,15 @@ const uploadMiddleware = (req, res, next) => {
 const https = require('https')
 
 const api = require('./api/index')
-const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods } = require('./api/goods')
+const { insertGood, getGoodsFromId, _getReferList, updateGoods, deleGoods, getGoodsFromClass } = require('./api/goods')
 const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refer')
 const { uploadRich } = require('./api/rich')
 const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
-const { _getAllClass } = require('./api/class')
-
+const { _getAllClass, updateClass } = require('./api/class')
+const {searchGoodsByKey} = require('./api/search')
 const { deleImg } = require('./api/utils')
+const {auth, getOpenId, getUserInfo } = require('./api/user')
+const { addGroup, updateGroupAvatar } = require('./api/group/group')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -62,6 +71,16 @@ app.get('/insert', (req, res) => {
     })
 
 })
+
+// group start
+app.post('/addGroup', (req, res) => {
+    addGroup(req, res)
+})
+app.post('updateGroupAvatar', uploadMiddleware, (req, res) => {
+    updateGroupAvatar(req, res)
+})
+// group end
+
 app.post('/deleGoods', (req, res) => {
     deleGoods(req, res)
 })
@@ -73,14 +92,18 @@ app.get('/getReferAll', (req, res) => {
     getReferAll(req, res)
 })
 
-
+app.post('/updateClass', (req, res) => {
+    updateClass(req ,res)
+})
 app.get('/getGoodsTitle', (req, res) => {
     api.getGoodsTitle(req, res)
 })
 app.get('/getGoodsAll', (req, res) => {
     api.getGoodsAll(req, res)
 })
-
+app.get('/getClass', (req, res) => {
+    api.getClasses(req, res)
+})
 
 app.post('/getGoods', (req, res) => {
     getGoodsFromId(req, res)
@@ -97,6 +120,9 @@ app.get('/getRich', (req, res) => {
     })
 })
 
+app.post('/getGoodsFromClass', (req, res) => {
+    getGoodsFromClass(req, res)
+})
 
 app.post('/insertGood', uploadMiddleware, (req, res) => {
     insertGood(req, res)
@@ -112,6 +138,9 @@ app.get('/getAllClass', (req, res) => {
     _getAllClass().then(result => {
         res.json(result)
     })
+})
+app.post('/searchGoods', (req, res) => {
+    searchGoodsByKey(req, res)
 })
 
 app.post('/updateRefer', uploadMiddleware, (req, res) => {
@@ -130,6 +159,10 @@ app.get('/refer.html', function (req, res) {
 app.get('/rich.html', function (req, res) {
     res.sendFile(__dirname + "/public/" + "rich.htm");
 })
+
+app.get('/group.html', function (req, res) {
+    res.sendFile(__dirname + "/public/" + "group.htm");
+})
 app.post('/deleRich', (req, res) => {
     deleRich(req, res)
 })
@@ -138,6 +171,16 @@ app.post('/deleRefer', (req, res) => {
 })
 app.post('/updateRich', (req, res) => {
     updateRich(req, res)
+})
+app.post('/getOpenId', (req, res) => {
+    getOpenId(req, res)
+})
+
+app.post('/auth', (req, res) => {
+    auth(req, res)
+})
+app.get('/getUserInfo', (req, res) => {
+    getUserInfo(req, res)
 })
 
 app.post('/getReferFromGoodsid', (req, res) => {
@@ -169,6 +212,7 @@ app.post('/getReferFromGoodsid', (req, res) => {
 //     });
 // })
 
+
 var privateKey = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.key'), 'utf8');
 var certificate = fs.readFileSync(path.join(__dirname, './certificate/2262666_www.nepu.fun.pem'), 'utf8');
 
@@ -184,6 +228,3 @@ server.listen(8081, function () {
     console.log("应用实例，访问地址为 https://%s:%s", host, port)
 
 })
-
-
-
