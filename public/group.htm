@@ -26,7 +26,21 @@
                 <td>title</td>
                 <td>info</td>
                 <td>member_num</td>
+                <td>操作</td>
             </thead>
+            <tbody>
+                <tr v-for='(item, index) in groupList'>
+                    <td>{{item.id}}</td>
+                    <td>
+                        <img style="width: 100px;" :src="item.avatar" alt="">
+                    </td>
+                    <td>{{item.banner_list}}</td>
+                    <td>{{item.title}}</td>
+                    <td>{{item.info}}</td>
+                    <td>{{item.member_num}}</td>
+                    <td><button @click='editGroup(item)'>修改</button></td>
+                </tr>
+            </tbody>
         </table>
 
         <div v-if='showType == 1'>
@@ -35,14 +49,16 @@
             <h3>编号</h3>
             <div>{{currentForm.id}}</div>
             <h3>头像</h3>
-            <div><input type="text" v-model='currentForm.avatar'></div>
+            <div><input type="file" @change='onAvatarChange'>
+                <img width="100px;" :src="currentForm.avatar" alt="">
+            </div>
             <h3>轮播图</h3>
             <div><input type="text" v-model='currentForm.bannerList'></div>
             <h3>标题</h3>
             <div><input type="text" v-model='currentForm.title'></div>
             <h3>详情</h3>
             <div><input type="text" v-model='currentForm.info'></div>
-            <button @click='addSubmit'>提交</button>
+            <button @click='editSubmit'>提交</button>
             <!-- 我是添加和修改 End -->
         </div>
     </div>
@@ -62,21 +78,76 @@
                 avatar: null,
                 bannerList: null,
                 memberNum: null
-            }
+            },
+            groupList: []
         },
         methods: {
             toogleShow() {
-                this.showType = this.showType == 0 ? 1 : 0
+                this.showType = this.showType == 0 ? 1 : 0;
+                if (this.showType == 1) {
+                    this.addSubmit();
+                }
             },
-            addSubmit(){
-                console.log(this.currentForm)
+            addSubmit() {
                 axios.post('/addGroup',
                     this.currentForm
                 ).then(res => {
                     console.log(res)
+                    if (!res.data.err) {
+                        alert('添加社团成功，请填写社团信息');
+                        this.currentForm.id = res.data.data.insertId
+                    }
                 })
+            },
+            editSubmit() {
+                axios.post('/updateGroup',
+                    this.currentForm
+                ).then(res => {
+                    console.log(res)
+                    if (!res.data.err) {
+                        alert('社团信息提交成功');
+                        this.showType = 0
+                    }
+                })
+            },
+            onAvatarChange(e) {
+                let avatar = (e.target.files[0])
+                let form = new FormData()
+                form.append('image', avatar);
+                form.append('groupId', this.currentForm.id);
+                axios.post('/updateGroupAvatar', form).then(res => {
+                    console.log(res)
+                })
+                axios.post('/getGroupFromId', {
+                    groupId: this.currentForm.id
+                }).then(res => {
+                    console.log(res)
+                    this.currentForm = res.data.data
+                })
+            },
+            getGroupAll() {
+                axios.get('/getGroupAll').then(res => {
+                    console.log(res)
+                    this.groupList = res.data.data
+                })
+            },
+            editGroup(item) {
+                console.log(item)
+                this.currentForm = { ...item }
+                this.showType = 1
             }
-        }
+        },
+        created() {
+            this.getGroupAll()
+        },
+        watch: {
+            'currentForm': {
+                handler: (val, lodVal) => {
+                    console.log('deepwatch')
+                },
+                deep: true
+            }
+        },
     })
 
 

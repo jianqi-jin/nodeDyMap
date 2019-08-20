@@ -1,8 +1,9 @@
 const query = require('../../db/db')
-const {deleteImg} = require('../utils') 
-async function getGroup (req, res) {
+const { deleImg } = require('../utils')
+const { imgDir } = require('../../server')
+async function getGroup(req, res) {
     try {
-        let groupList = await _selectGroupAll();
+        let { groupList } = await _selectGroupAll();
         res.json({
             err: false,
             msg: null,
@@ -17,15 +18,47 @@ async function getGroup (req, res) {
     }
 }
 
-async function deleteGroup(req, res){
+async function getGroupAll(req, res) {
+    query('SELECT * FROM `group` LIMIT 0,50', (err, result) => {
+        result = result.map(val => {
+            val.avatar = imgDir + val.avatar
+            try {
+                val.banner_list = JSON.parse(val.banner_list)
+                val.banner_list.map(val => (
+                    imgDir + val
+                ))
+            } catch (error) {
+                return val
+            }
+            return val
+        })
+        res.json({
+            err: !!err,
+            msg: err,
+            data: result
+        })
+    })
+}
+
+async function getGroupFromId(req, res) {
+    let { err, result } = await _selectGroup(req.body.groupId);
+    res.json({
+        err: !!err,
+        msg: err,
+        data: result[0]
+    })
+}
+
+async function deleteGroup(req, res) {
     let params = req.query;
     try {
-        let groupInfo = await _selectGroup(params.groupId);
+        let { err, result } = await _selectGroup(params.groupId);
+        let groupInfo = result[0];
         let bannerList = JSON.parse(groupInfo.banner_list);
         try {
             for (const bannerItem of bannerList) {
                 deleImg(bannerItem)
-            }                      
+            }
         } catch (error) {
             console.log(error)
         }
@@ -42,53 +75,77 @@ async function deleteGroup(req, res){
 const _selectGroup = (groupId) => {
     return new Promise(resolve => {
         query('SELECT * FROM `group` WHERE `id` = ?', [groupId], (err, result) => {
-            resolve(result[0]||{})
-        })  
+            result.map(val => {
+                val.avatar = imgDir + val.avatar
+                try {
+                    val.banner_list = JSON.parse(val.banner_list)
+                    val.banner_list.map(val => (
+                        imgDir + val
+                    ))
+                } catch (error) {
+                    return val
+                }
+                return val
+            })
+            resolve({ err, result })
+        })
     })
 }
 const _selectGroupFromName = (groupName) => {
     return new Promise(resolve => {
         query('SELECT * FROM `group` WHERE `title` = ?', [groupName], (err, result) => {
-            resolve(result[0]||{})
-        })  
+            resolve(result[0] || {})
+        })
     })
 }
 
 const _selectGroupAll = () => {
     return new Promise(resolve => {
         query('SELECT * FROM `group` LIMIT 0, 50', (err, result) => {
-            resolve(result||[])
-        })  
+            result = result.map(val => {
+                val.avatar = imgDir + val.avatar
+                try {
+                    val.banner_list = JSON.parse(val.banner_list)
+                    val.banner_list.map(val => (
+                        imgDir + val
+                    ))
+                } catch (error) {
+                    return val
+                }
+                return val
+            })
+            resolve(result || [])
+        })
     })
 }
 const _deleteGroup = (groupId) => {
     return new Promise(resolve => {
         query('DELETE FROM `group` WHERE `id` = ?', [groupId], (err, result) => {
-            resolve(result||[])
-        })  
+            resolve(result || [])
+        })
     })
 }
 
-async function addGroup(req, res){
+async function addGroup(req, res) {
     let params = req.body;
     try {
         //查询是否已经存在
         let groupInfo = await _selectGroup(params.groupName);
-        if(groupInfo.length > 0){
+        if (groupInfo.result.length > 0) {
             //已经存在
             res.json({
                 err: true,
                 msg: '社团名称已经存在'
             })
-        }else{
+        } else {
             let insertRes = await _insertGroup(params);
-            if(insertRes){
-                throw (insertRes)
-            }else{
+            if (insertRes.err) {
+                throw (insertRes.err)
+            } else {
                 res.json({
                     err: false,
                     msg: null,
-                    data: null
+                    data: insertRes.result
                 })
             }
         }
@@ -100,19 +157,24 @@ async function addGroup(req, res){
     }
 }
 
-async function updateGroup(req, res){
+async function updateGroup(req, res) {
     let params = req.body;
     try {
-        let groupInfo = await _selectGroup(groupId);
-        if(!groupInfo||!groupInfo.id){
+        let groupInfo = await _selectGroup(params.id);
+        if (!groupInfo.result || !groupInfo.result[0].id) {
             throw ('社团不存在');
-        }else{
-            let bannerList = JSON.parse(groupInfo.banner_list);
-            for (const bannerItem of bannerList) {
-                //判断并删除无用的图片
-            }
-            params.bannerList = JSON.stringify(bannerList);
-
+        } else {
+            // let bannerList = JSON.parse(groupInfo.banner_list);
+            // for (const bannerItem of bannerList) {
+            //     //判断并删除无用的图片
+            // }
+            // params.bannerList = JSON.stringify(bannerList);
+            let {err, result} = await _updateGroup(params);
+            res.json({
+                err: !!err,
+                msg: err,
+                data: result
+            })
         }
     } catch (error) {
         res.json({
@@ -123,10 +185,12 @@ async function updateGroup(req, res){
 
 }
 
+
+
 const _updateGroup = (params) => {
     return new Promise(resolve => {
-        query("UPDATE `group` SET `avatar`=?, `member_num`=?, `info`=?, `banner_list`=? WHERE (`id`=?)",[params.avatar, params.memberNum, params.info, params.bannerList, params.id],(err, result) => {
-            resolve(err)
+        query("UPDATE `group` SET `member_num`=?, `info`=? WHERE (`id`=?)", [params.member_num, params.info, params.id], (err, result) => {
+            resolve({err,result})
         })
     })
 }
@@ -134,29 +198,29 @@ const _updateGroup = (params) => {
 const _insertGroup = (params) => {
     let bannerList = [];
     return new Promise(resolve => {
-        query("INSERT INTO `group` (`title`, `member_num`, `info`, `avatar`, `banner_list`) VALUES (?, ?, ?, ?, ?)", 
-        [params.title, params.memberNum, params.info, params.avatar, JSON.stringify(bannerList)], (err, result) => {
-            resolve(err)
-        })
+        query("INSERT INTO `group` (`title`, `member_num`, `info`, `avatar`, `banner_list`) VALUES (?, ?, ?, ?, ?)",
+            [params.title, params.memberNum, params.info, params.avatar, JSON.stringify(bannerList)], (err, result) => {
+                resolve({ err: err, result })
+            })
     })
 }
 
-async function updateGroupAvatar(req, res){
-    let params = req.query;
+async function updateGroupAvatar(req, res) {
+    let params = req.body;
     let avatarNew = req.files[0].filename;
     console.log(params, avatarNew)
-    try {    
+    try {
         let groupInfo = await _selectGroup(params.groupId);
-        if(groupInfo&&groupInfo.id){
+        if (groupInfo.result && groupInfo.result[0].id) {
             let avatar = groupInfo.avatar;
-            if(avatar){
+            if (avatar) {
                 try {
-                    deleImg(avatar);
+                    let delRes = deleImg(avatar);
                 } catch (error) {
-                    console.log('删除图片失败')
+                    console.log('删除图片失败', error)
                 }
             }
-            query("UPDATE `group` SET `avatar`=? WHERE (`id`=?)",[avatarNew, params.groupId], (err, result) => {
+            query("UPDATE `group` SET `avatar`=? WHERE (`id`=?)", [avatarNew, params.groupId], (err, result) => {
                 res.json({
                     err: !!err,
                     msg: err,
@@ -175,8 +239,10 @@ async function updateGroupAvatar(req, res){
 
 module.exports = {
     getGroup,
+    getGroupAll,
     deleteGroup,
     updateGroup,
     addGroup,
+    getGroupFromId,
     updateGroupAvatar
 }

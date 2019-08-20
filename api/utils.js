@@ -9,8 +9,6 @@ const deleImg = (fileName) => {
     })
 }
 
-
-
 module.exports = {
     deleImg
 }

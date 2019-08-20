@@ -56,10 +56,10 @@ const { insertRefer, getReferAll, updateRefer, deleRefer } = require('./api/refe
 const { uploadRich } = require('./api/rich')
 const { getRichAll, _getRichFromGoodsId, deleRich } = require('./api/rich')
 const { _getAllClass, updateClass } = require('./api/class')
-const {searchGoodsByKey} = require('./api/search')
+const { searchGoodsByKey } = require('./api/search')
 const { deleImg } = require('./api/utils')
-const {auth, getOpenId, getUserInfo } = require('./api/user')
-const { addGroup, updateGroupAvatar } = require('./api/group/group')
+const { auth, getOpenId, getUserInfo } = require('./api/user')
+const { addGroup, updateGroupAvatar, getGroupFromId, getGroupAll, updateGroup } = require('./api/group/group')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -76,8 +76,17 @@ app.get('/insert', (req, res) => {
 app.post('/addGroup', (req, res) => {
     addGroup(req, res)
 })
-app.post('updateGroupAvatar', uploadMiddleware, (req, res) => {
+app.get('/getGroupAll', (req, res) => {
+    getGroupAll(req, res)
+})
+app.post('/updateGroupAvatar', uploadMiddleware, (req, res) => {
     updateGroupAvatar(req, res)
+})
+app.post('/getGroupFromId', (req, res) => {
+    getGroupFromId(req, res)
+})
+app.post('/updateGroup', (req, res) => {
+    updateGroup(req, res)
 })
 // group end
 
@@ -93,7 +102,7 @@ app.get('/getReferAll', (req, res) => {
 })
 
 app.post('/updateClass', (req, res) => {
-    updateClass(req ,res)
+    updateClass(req, res)
 })
 app.get('/getGoodsTitle', (req, res) => {
     api.getGoodsTitle(req, res)
