@@ -27,6 +27,7 @@
                 <td>title</td>
                 <td>info</td>
                 <td>member_num</td>
+                <td>说明</td>
                 <td>操作</td>
             </thead>
             <tbody>
@@ -39,26 +40,28 @@
                     <td>{{item.title}}</td>
                     <td>{{item.info}}</td>
                     <td>{{item.member_num}}</td>
+                    <td>{{item.content}}</td>
                     <td><button @click='editGroup(item)'>修改</button></td>
+                    <td><button @click='delGroup(item)'>删除</button></td>
                 </tr>
             </tbody>
         </table>
 
-        <div v-if='showType == 1'>
+        <div style="display: flex;flex-direction:column;align-items:center;" v-if='showType == 1'>
 
             <!-- 我是添加和修改 Start -->
             <h3>编号</h3>
             <div>{{currentForm.id}}</div>
             <h3>头像</h3>
-            <div style="display: flex;flex-direction:column;">
+            <div style="display: flex;flex-direction:column; border: 1px solid #ccc;align-items: center;">
                 <img width="100px;" :src="currentForm.avatar" alt="">
                 <input type="file" @change='onAvatarChange'>
             </div>
             <h3>轮播图</h3>
-            <div style="display: flex;flex-direction: row;">
+            <div style="display: flex;flex-direction: row;border: 1px solid #ccc;">
                 <div style="border: 1px solid #ccc;display: flex;flex-direction: column;"
                     v-for='(item, index) in currentForm.banner_list'>
-                    <!-- <div><button>删除</button></div> -->
+                    <div><button @click='delBanner(index)'>删除</button></div>
                     <img style="width: 200px;" :src="item" alt="">
                     <input style="max-width: 150px;" type="file" @change='onBannerChange($event, index)'>
                 </div>
@@ -70,6 +73,8 @@
             <div><input type="text" v-model='currentForm.title'></div>
             <h3>详情</h3>
             <div><input type="text" v-model='currentForm.info'></div>
+            <h3>说明</h3>
+            <div><textarea type="text" v-model='currentForm.content'></textarea></div>
             <button @click='editSubmit'>提交</button>
             <!-- 我是添加和修改 End -->
         </div>
@@ -108,7 +113,8 @@
                     info: null,
                     avatar: null,
                     banner_list: [],
-                    memberNum: null
+                    memberNum: null,
+                    content: null
                 }
                 axios.post('/addGroup',
                     this.currentForm
@@ -118,6 +124,19 @@
                         alert('添加社团成功，请填写社团信息');
                         this.currentForm.id = res.data.data.insertId
                     }
+                })
+            },
+            delGroup(item) {
+                console.log(item);
+                axios.get('/delGroup?groupId=' + item.id).then(res => {
+                    console.log(res)
+                    this.getGroupAll()
+                })
+            },
+            delBanner(index) {
+                let { id } = this.currentForm;
+                axios.get('/delGroupBanner?id=' + id + '&index=' + index).then(res => {
+                    console.log(res)
                 })
             },
             editSubmit() {
