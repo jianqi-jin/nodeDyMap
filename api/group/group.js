@@ -86,7 +86,6 @@ const _selectGroup = (groupId, havImgHeader = true) => {
                     return val
                 })
             }
-            console.log(result)
             resolve({ err, result })
         })
     })
@@ -188,7 +187,7 @@ async function updateGroup(req, res) {
 
 const _updateGroup = (params) => {
     return new Promise(resolve => {
-        query("UPDATE `group` SET `member_num`=?, `title`=?, `info`=? WHERE (`id`=?)", [params.member_num, params.title, params.info, params.id], (err, result) => {
+        query("UPDATE `group` SET `member_num`=?, `title`=?, `info`=?, `content`=? WHERE (`id`=?)", [params.member_num, params.title, params.info, params.content, params.id], (err, result) => {
             resolve({ err, result })
         })
     })
@@ -278,6 +277,65 @@ async function updateGroupAvatar(req, res) {
     }
 
 }
+async function delGroup(req, res) {
+    let { groupId } = req.query;
+    let { err, result } = await _selectGroup(groupId, false);
+    try {
+        let groupInfo = result[0];
+        if (!groupInfo)
+            throw '没有找到此社团'
+        let { banner_list, avatar } = groupInfo;
+        for (const item of JSON.parse(banner_list)) {
+            await deleImg(item)
+        }
+        await deleImg(avatar)
+        query("DELETE FROM `group` WHERE `id`=?", [groupId], (err, result) => {
+
+            res.json({
+                err: !!err,
+                msg: err,
+                data: result
+            })
+        })
+    } catch (e) {
+        console.log(e)
+        res.json({
+            err: true,
+            msg: err.toString()
+        })
+    }
+}
+async function delGroupBanner(req, res) {
+    let { id, index } = req.query;
+    try {
+        let { err, result } = await _selectGroup(id);
+        let groupInfo = result[0];
+        if (!groupInfo)
+            throw '没有找到此社团'
+        let { banner_list } = groupInfo;
+        let delRes = await deleImg(banner_list[index]);
+        let bannerList = [];
+        for (const key in banner_list) {
+            if (key == index) { } else {
+                bannerList.push(banner_list[key])
+            }
+        }
+        banner_list = JSON.stringify(bannerList);
+        query("UPDATE `group` SET `banner_list`=? WHERE (`id`=?)", [banner_list, id], (err, result) => {
+            res.json({
+                err: !!err,
+                msg: err,
+                data: result
+            })
+        })
+    } catch (e) {
+        console.log(e)
+        res.json({
+            err: true,
+            msg: e.toString()
+        })
+    }
+}
 
 module.exports = {
     getGroup,
@@ -287,5 +345,7 @@ module.exports = {
     addGroup,
     getGroupFromId,
     updateGroupAvatar,
-    updateGroupBanner
+    updateGroupBanner,
+    delGroup,
+    delGroupBanner
 }
