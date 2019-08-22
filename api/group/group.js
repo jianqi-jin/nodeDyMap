@@ -38,6 +38,7 @@ async function getGroupAll(req, res) {
 
 async function getGroupFromId(req, res) {
     let { err, result } = await _selectGroup(req.body.groupId);
+    result = result.map(val => (val.banner_list = val.banner_list.map(val => (imgDir + val)), val))
     res.json({
         err: !!err,
         msg: err,
