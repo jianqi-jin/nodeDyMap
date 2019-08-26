@@ -337,6 +337,40 @@ async function delGroupBanner(req, res) {
     }
 }
 
+
+const _selectGroupApplyFromUser = (user) => {
+    return new Promise(resolve => {
+        query('SELECT * FROM `group_apply` WHERE `user`=?', [user], (err, result) => {
+            resolve({ err, result })
+        })
+    })
+}
+
+async function aplyGroup(req, res) {
+    let params = req.body;
+    try {
+        let selectRes = await _selectGroupApplyFromUser(params.user);
+        if(selectRes.err){
+            throw 'SQL ERROR: '+selectRes.err.toString()
+        }else{
+            query("INSERT INTO `group_apply` (`user`, `name`, `sex`, `phone`, `department`, `special`, `group_id`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [params.user,params.name,params.sex,params.phone,params.deparment,params.special,params.group_id],(err, result) => {
+                res.json({
+                    err: !!err,
+                    msg: err,
+                    data: result
+                })
+            })
+        }     
+    } catch (error) {
+        res.json({
+            err: true,
+            msg: error.toString()
+        })
+    }
+   
+}
+
 module.exports = {
     getGroup,
     getGroupAll,
@@ -347,5 +381,6 @@ module.exports = {
     updateGroupAvatar,
     updateGroupBanner,
     delGroup,
-    delGroupBanner
+    delGroupBanner,
+    aplyGroup
 }
