@@ -59,7 +59,8 @@ const { _getAllClass, updateClass } = require('./api/class')
 const { searchGoodsByKey } = require('./api/search')
 const { deleImg } = require('./api/utils')
 const { auth, getOpenId, getUserInfo } = require('./api/user')
-const { aplyGroup ,addGroup, updateGroupAvatar, getGroupFromId, getGroupAll, updateGroup, updateGroupBanner, delGroup, delGroupBanner } = require('./api/group/group')
+const { getQr } = require('./api/qr.js')
+const { aplyGroup, addGroup, updateGroupAvatar, getGroupFromId, getGroupAll, updateGroup, updateGroupBanner, delGroup, delGroupBanner } = require('./api/group/group')
 app.get('/insert', (req, res) => {
     query("INSERT INTO `user` (id, name, psw) VALUES (null, '靳建奇', '52Alsdkfj')", function (error, results, fields) {
         if (!error) {
@@ -72,7 +73,13 @@ app.get('/insert', (req, res) => {
 
 })
 
+//生成二维码
+app.get('/getQr', (req, res) => {
+    getQr(req, res)
+})
+
 // group start
+
 app.post('/addGroup', (req, res) => {
     addGroup(req, res)
 })

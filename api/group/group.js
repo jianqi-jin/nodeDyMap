@@ -382,5 +382,5 @@ module.exports = {
     updateGroupBanner,
     delGroup,
     delGroupBanner,
-    aplyGroup
+    aplyGroup,
 }
