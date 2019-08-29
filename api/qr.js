@@ -31,7 +31,7 @@ async function _getWxToken() {
         })
     })
 }
-async function _getWxQrImg(token, res) {
+async function _getWxQrImg(token, res, filePath) {
     const wxUrl = 'https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token=' + token
     return new Promise(resolve => {
         request.post({
@@ -40,7 +40,8 @@ async function _getWxQrImg(token, res) {
                 path: 'pages/home/home',
                 width: 100
             }
-        }).pipe(fs.createWriteStream(process.cwd() + '/uploads/qr/asdw.png'))
+        }).pipe(fs.createWriteStream(filePath))
+        resolve(filePath)
 
 
         // , (err, res, body) => {
@@ -68,7 +69,49 @@ async function _getWxQrImg(token, res) {
     })
 }
 
+const _fileExists = (filePath) => {
+    return new Promise(resolve => {
+        fs.exists(filePath, (exists) => {
+            resolve(exists)
+        })
+    })
+}
+
 async function getQr(req, res) {
+    // group_id:
+    let { group_id } = req.body;
+    let qrName = 'group_id_' + group_id + '.png';
+    let filePath = process.cwd() + '/uploads/qr/' + qrName;
+
+    let fileExists = await _fileExists(filePath);
+
+    if (fileExists) {
+        res.json({
+            err: false,
+            img: imgDir + 'qr/' + qrName
+        })
+        return
+    } else {
+        try {
+            let tokenRes = await _getWxToken();
+            if (tokenRes.err) throw tokenRes.err
+            let token = tokenRes.result.access_token
+            filePath = await _getWxQrImg(token, res, filePath)
+            res.json({
+                err: false,
+                img: imgDir + 'qr/' + qrName
+            })
+            return
+        } catch (error) {
+            res.json({
+                err: true,
+                msg: error.toString()
+            })
+        }
+    }
+
+
+
     // try {
     //     let params = req.body;
     //     let qr = await _selectQrFromScene(params.scene);
@@ -91,17 +134,7 @@ async function getQr(req, res) {
     //         msg: error.toString()
     //     })
     // }
-    try {
-        let tokenRes = await _getWxToken();
-        if (tokenRes.err) throw tokenRes.err
-        let token = tokenRes.result.access_token
-        _getWxQrImg(token, res)
-    } catch (error) {
-        res.json({
-            err: true,
-            msg: error.toString()
-        })
-    }
+
 
 
     // let qrCode = qr.image('I love Qr', { type: 'png' });
@@ -109,15 +142,15 @@ async function getQr(req, res) {
     // qrCode.pipe(res);
 }
 
-const _selectQrFromScene = (scene) => {
-    return new Promise((resolve) => {
-        query("SELECT * FROM WHERE `scene`=?", [scene], (err, result) => {
-            resolve(
-                { err, result }
-            )
-        })
-    })
-}
+// const _selectQrFromScene = (scene) => {
+//     return new Promise((resolve) => {
+//         query("SELECT * FROM WHERE `scene`=?", [scene], (err, result) => {
+//             resolve(
+//                 { err, result }
+//             )
+//         })
+//     })
+// }
 
 
 module.exports = {

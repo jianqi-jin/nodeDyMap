@@ -74,7 +74,7 @@ app.get('/insert', (req, res) => {
 })
 
 //生成二维码
-app.get('/getQr', (req, res) => {
+app.post('/getQr', (req, res) => {
     getQr(req, res)
 })
 
