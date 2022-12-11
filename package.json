@@ -4,7 +4,7 @@
   "description": "|表|说明|\r |-|-|\r |[goods](#goods)|商品表|\r |[refer_goods](#refer_goods)|推荐表|\r |[richs](#richs)|富文本表|\r |[classes](#classes)|类型表|\r ### goods",
   "main": "WXBizDataCrypt.js",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "multer": "^1.4.2",
     "mysql": "^2.17.1",
     "qr-image": "^3.2.0",
